@@ -245,6 +245,8 @@ bool service_method_get_settings(LSHandle* sh, LSMessage* msg, void* data)
 
 bool service_method_set_settings(LSHandle* sh, LSMessage* msg, void* data)
 {
+    int res = 0;
+
     service_t* service = (service_t*)data;
     LSError lserror;
     LSErrorInit(&lserror);
@@ -256,30 +258,15 @@ bool service_method_set_settings(LSHandle* sh, LSMessage* msg, void* data)
     parsed = jdom_parse(j_cstr_to_buffer(LSMessageGetPayload(msg)), DOMOPT_NOOPT, &schema);
 
     if (jis_null(parsed)) {
+        ERR("Failed to parse settings from json request");
         j_release(&parsed);
-        return false;
+        res = 1;
     }
 
-    int res = settings_load_json(service->settings, parsed);
-    if (res == 0) {
-        if (settings_save_file(service->settings, SETTINGS_PERSISTENCE_PATH) != 0) {
-            WARN("Settings save failed");
-        }
-
-        const char* startup_directory = "/var/lib/webosbrew/init.d";
-        const char* startup_symlink = "/var/lib/webosbrew/init.d/piccapautostart";
-        const char* startup_script = "/media/developer/apps/usr/palm/services/org.webosbrew.piccap.service/piccapautostart";
-
-        if (unlink(startup_symlink) != 0 && errno != ENOENT) {
-            WARN("Startup symlink removal failed: %s", strerror(errno));
-        }
-
-        if (service->settings->autostart) {
-            mkdir(startup_directory, 0755);
-            if (symlink(startup_script, startup_symlink) != 0) {
-                WARN("Startup symlink creation failed: %s", strerror(errno));
-            }
-        }
+    if (res == 0 && (res = settings_load_json(service->settings, parsed)) != 0) {
+        ERR("Failed to load settings from parsed json request");
+    } else if (res == 0 && (res = settings_save_file(service->settings, SETTINGS_PERSISTENCE_PATH)) != 0) {
+        ERR("Saving Settings failed");
     }
 
     jvalue_ref jobj = jobject_create();

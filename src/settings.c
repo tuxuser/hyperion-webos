@@ -17,7 +17,6 @@ void settings_init(settings_t* settings)
 
     settings->no_video = false;
     settings->no_gui = false;
-    settings->autostart = false;
     settings->vsync = true;
 
     settings->dump_frames = false;
@@ -67,8 +66,6 @@ int settings_load_json(settings_t* settings, jvalue_ref source)
         jboolean_get(value, &settings->no_video);
     if ((value = jobject_get(source, j_cstr_to_buffer("nogui"))) && jis_boolean(value))
         jboolean_get(value, &settings->no_gui);
-    if ((value = jobject_get(source, j_cstr_to_buffer("autostart"))) && jis_boolean(value))
-        jboolean_get(value, &settings->autostart);
 
     return 0;
 }
@@ -90,7 +87,6 @@ int settings_save_json(settings_t* settings, jvalue_ref target)
     jobject_set(target, j_cstr_to_buffer("vsync"), jboolean_create(settings->vsync));
     jobject_set(target, j_cstr_to_buffer("novideo"), jboolean_create(settings->no_video));
     jobject_set(target, j_cstr_to_buffer("nogui"), jboolean_create(settings->no_gui));
-    jobject_set(target, j_cstr_to_buffer("autostart"), jboolean_create(settings->autostart));
 
     return 0;
 }
