@@ -67,7 +67,7 @@ int capture_init(cap_backend_config_t* config, void** state_p)
 
     if (DILE_VT_SetVideoFrameOutputDeviceDumpLocation(vth, dump_location) != 0) {
         WARN("[DILE_VT] DISPLAY dump location failed, attempting SCALER...");
-        dump_location = DILE_VT_SCALER_OUTPUT;
+ //       dump_location = DILE_VT_SCALER_OUTPUT;
         if (DILE_VT_SetVideoFrameOutputDeviceDumpLocation(vth, dump_location) != 0) {
             ERR("[DILE_VT] SCALER dump location failed, attempting UNDOCUMENTED DUMP LOCATION: 2!");
             dump_location = 2;
