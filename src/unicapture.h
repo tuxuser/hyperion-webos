@@ -57,6 +57,7 @@ typedef int (*capture_cleanup_t)(void*);
 typedef struct _capture_backend {
     char* name;
     void* state;
+    bool initialized;
 
     capture_init_t init;
     capture_cleanup_t cleanup;

@@ -54,6 +54,7 @@ int unicapture_init_backend(cap_backend_config_t* config, capture_backend_t* bac
     if (ret == 0) {
         backend->name = strdup(name);
         DBG("%s: success", name);
+        backend->initialized = true;
     } else {
         ERR("%s: init failure, code: %d", name, ret);
     }
@@ -130,6 +131,17 @@ void* unicapture_run(void* data)
 
     this->vsync_thread_running = true;
     pthread_create(&this->vsync_thread, NULL, unicapture_vsync_handler, this);
+
+    // FIXME: Get config object
+    void *config = NULL;
+
+    if (ui_capture != NULL && !ui_capture->initialized) {
+        ui_capture->init(config, &ui_capture->state);
+    }
+
+    if (video_capture != NULL && !video_capture->initialized) {
+        video_capture->init(config, &video_capture->state);
+    }
 
     while (this->running) {
         uint64_t now = getticks_us();
@@ -309,12 +321,18 @@ void* unicapture_run(void* data)
     if (this->ui_capture_running) {
         DBG("Terminating UI capture...");
         ui_capture->terminate(ui_capture->state);
+        DBG("Destroying UI capture context...");
+        ui_capture->cleanup(ui_capture->state);
+        ui_capture->initialized = false;
         this->ui_capture_running = false;
     }
 
     if (this->video_capture_running) {
         DBG("Terminating Video capture...");
         video_capture->terminate(video_capture->state);
+        DBG("Destroying Video capture context...");
+        video_capture->cleanup(video_capture->state);
+        video_capture->initialized = false;
         this->video_capture_running = false;
     }
 
